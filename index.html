@@ -372,4 +372,629 @@
             <div class="rounded-2xl bg-slate-950/80 border border-slate-800 p-5 space-y-4">
               <div class="flex items-center justify-between gap-2">
                 <div>
-                  <h3 class="text-sm font-extrabold text-white">📊 Anonymous Local Trigger Log</h
+                  <h3 class="text-sm font-extrabold text-white">📊 Anonymous Local Trigger Log</h3>
+                  <p class="text-xs text-slate-400">Spot what sparks the heat without shame. Stored only on your phone/PC.</p>
+                </div>
+                <button
+                  type="button"
+                  onclick="clearAllLocalData()"
+                  class="touch-manipulation px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/25 text-[11px] font-bold transition-all"
+                >
+                  Clear Local Data
+                </button>
+              </div>
+
+              <!-- Universal Trigger Category Chips -->
+              <div class="flex flex-wrap gap-2" id="trigger-chips">
+                <button type="button" onclick="selectTriggerCategory('Lust')" data-cat="Lust" class="trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all">Lust</button>
+                <button type="button" onclick="selectTriggerCategory('Late Night')" data-cat="Late Night" class="trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all">Late Night</button>
+                <button type="button" onclick="selectTriggerCategory('Stress')" data-cat="Stress" class="trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all">Stress</button>
+                <button type="button" onclick="selectTriggerCategory('Boredom')" data-cat="Boredom" class="trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all">Boredom</button>
+                <button type="button" onclick="selectTriggerCategory('Anger')" data-cat="Anger" class="trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all">Anger</button>
+                <button type="button" onclick="selectTriggerCategory('Scrolling')" data-cat="Scrolling" class="trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all">Scrolling</button>
+              </div>
+
+              <!-- Optional Context Note + Log Action -->
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input
+                  id="trigger-note-input"
+                  type="text"
+                  maxlength="90"
+                  placeholder="Optional quick note (e.g., Tired after work, phone in bed)..."
+                  class="flex-1 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-emerald-400 text-xs sm:text-sm text-white px-3.5 py-2.5 outline-none"
+                />
+                <button
+                  type="button"
+                  onclick="logTriggerEntry()"
+                  class="touch-manipulation px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm whitespace-nowrap active:scale-95 transition-all"
+                >
+                  + Log Pattern
+                </button>
+              </div>
+
+              <!-- Pattern Summary Badges -->
+              <div id="pattern-summary" class="flex flex-wrap gap-1.5 pt-1"></div>
+
+              <!-- Recent Entries Feed -->
+              <div id="trigger-log-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 3. THE CORE METAPHOR (TWO STATES. ONE CHOICE.)            -->
+    <!-- ========================================================= -->
+    <section id="states" class="py-14 sm:py-20 px-4 sm:px-6 border-t border-slate-800/80 bg-slate-900/35">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10 sm:mb-12">
+          <span class="text-xs font-mono uppercase tracking-widest text-slate-400">The Core Metaphor</span>
+          <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Your Nervous System Has Two Settings.</h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- ON — FIRE Card -->
+          <div class="rounded-3xl bg-gradient-to-b from-amber-950/30 to-slate-900/90 border border-amber-500/30 p-6 sm:p-8 flex flex-col justify-between">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-mono font-bold mb-4">
+                🔥 ON — FIRE
+              </div>
+              <h3 class="text-xl font-extrabold text-white mb-4">When the System Overheats</h3>
+              <ul class="space-y-3.5 text-sm text-slate-300">
+                <li class="flex items-start gap-2.5">
+                  <span class="text-amber-400 font-bold mt-0.5">•</span>
+                  <span><strong class="text-white">The State:</strong> High heat, dopamine surge, and impulsive tunnel vision.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="text-amber-400 font-bold mt-0.5">•</span>
+                  <span><strong class="text-white">The Trigger:</strong> Lust, anger, late-night scrolling, stress, drinking, or emotional relapse.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="text-amber-400 font-bold mt-0.5">•</span>
+                  <span><strong class="text-white">The Risk:</strong> Acting on a 5-minute wave that leaves days of regret.</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              onclick="jumpToPlayground('on')"
+              class="touch-manipulation mt-7 w-full py-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              Open ON (Fire) Reset →
+            </button>
+          </div>
+
+          <!-- OFF — SAFE MODE Card -->
+          <div class="rounded-3xl bg-gradient-to-b from-emerald-950/30 to-slate-900/90 border border-emerald-500/30 p-6 sm:p-8 flex flex-col justify-between">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-mono font-bold mb-4">
+                🛡️ OFF — SAFE MODE
+              </div>
+              <h3 class="text-xl font-extrabold text-white mb-4">When Control Is Locked In</h3>
+              <ul class="space-y-3.5 text-sm text-slate-300">
+                <li class="flex items-start gap-2.5">
+                  <span class="text-emerald-400 font-bold mt-0.5">•</span>
+                  <span><strong class="text-white">The State:</strong> Cool head, steady breathing, and rational control.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="text-emerald-400 font-bold mt-0.5">•</span>
+                  <span><strong class="text-white">The Protection:</strong> Non-essential noise stripped away so your system doesn't crash.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="text-emerald-400 font-bold mt-0.5">•</span>
+                  <span><strong class="text-white">The Result:</strong> You protect your peace, your focus, and your self-respect.</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              onclick="jumpToPlayground('off')"
+              class="touch-manipulation mt-7 w-full py-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              Return to OFF (Safe Mode) →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 4. HOW IT WORKS (THE 60-SECOND RESET)                     -->
+    <!-- ========================================================= -->
+    <section id="how-it-works" class="py-14 sm:py-20 px-4 sm:px-6 border-t border-slate-800/80">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10 sm:mb-12">
+          <span class="text-xs font-mono uppercase tracking-widest text-emerald-400">The 60-Second Reset</span>
+          <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Built for the Moment Willpower Isn't Enough.</h2>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-300 font-mono font-bold text-sm flex items-center justify-center mb-4">01</div>
+            <h3 class="text-base sm:text-lg font-extrabold text-white mb-2">Hit ON When You Feel the Heat</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Don't try to out-think a dopamine spike while your brain is overheating. Tap <strong class="text-amber-300">ON</strong> to trigger an immediate pattern interrupt before an urge turns into action.
+            </p>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-300 font-mono font-bold text-sm flex items-center justify-center mb-4">02</div>
+            <h3 class="text-base sm:text-lg font-extrabold text-white mb-2">Drop the Temperature in 60 Seconds</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Follow the guided physiological sigh orb and calm, system-led grounding prompts designed to slow your heart rate and pull you out of tunnel vision.
+            </p>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-300 font-mono font-bold text-sm flex items-center justify-center mb-4">03</div>
+            <h3 class="text-base sm:text-lg font-extrabold text-white mb-2">Read Your Own Mirror Check</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              See the exact words you wrote to yourself when your head was clear—reminding you what matters more than a temporary impulse.
+            </p>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-6">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-300 font-mono font-bold text-sm flex items-center justify-center mb-4">04</div>
+            <h3 class="text-base sm:text-lg font-extrabold text-white mb-2">Flip Back to OFF (Safe Mode)</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Once the wave passes, switch back to <strong class="text-emerald-300">OFF</strong>, log the trigger privately on your device, and keep your Safe Mode clock running.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 5. WHY 24/7 ON OR OFF IS DIFFERENT                        -->
+    <!-- ========================================================= -->
+    <section id="privacy" class="py-14 sm:py-20 px-4 sm:px-6 border-t border-slate-800/80 bg-slate-900/35">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10 sm:mb-12">
+          <span class="text-xs font-mono uppercase tracking-widest text-slate-400">Zero Strangers • Zero Exposure</span>
+          <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Private by Design. Safe on Demand.</h2>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-6">
+          <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+            <h3 class="text-base font-extrabold text-white mb-2">🤖 Zero Strangers. Zero Judgment.</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              You don't need a chat room full of strangers lecturing you, judging your struggles, or piling on shame when you're already vulnerable. The system responds calmly, steadily, and neutrally—every single time.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+            <h3 class="text-base font-extrabold text-white mb-2">🔒 100% On-Device Privacy</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              No email required. No phone number. No account creation. Your Mirror Check notes, trigger patterns, and Safe Mode timer stay saved locally in your browser—never sold, never shared, and wipeable in one tap.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+            <h3 class="text-base font-extrabold text-white mb-2">🕶️ Discreet Anywhere You Open It</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Whether you're at home, at work, or on the bus, <span class="font-mono text-slate-200">247onoroff.com</span> looks and behaves like a clean system utility. No explicit words on screen, no awkward explanations if someone glances over.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800">
+            <h3 class="text-base font-extrabold text-white mb-2">⚡ Works for Every Kind of Heat</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Impulses run on the same wiring. Use one switch for sexual urges, late-night doomscrolling, rage, gambling, or any habit you refuse to let run your life.
+            </p>
+          </div>
+        </div>
+
+        <!-- Philosophy Banner -->
+        <div class="mt-10 rounded-3xl bg-gradient-to-r from-amber-500/10 via-slate-900 to-emerald-500/10 border border-slate-800 p-7 sm:p-9 text-center">
+          <blockquote class="text-lg sm:text-2xl font-extrabold text-white tracking-tight max-w-2xl mx-auto leading-snug">
+            “You don't beat fire by arguing with it. You cut the oxygen, cool the room, and put the system back into Safe Mode.”
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 6. FINAL CALL TO ACTION                                   -->
+    <!-- ========================================================= -->
+    <section class="py-16 sm:py-20 px-4 sm:px-6 border-t border-slate-800/80 text-center">
+      <div class="max-w-2xl mx-auto">
+        <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight mb-4">
+          24 Hours a Day. 7 Days a Week. You Hold the Switch.
+        </h2>
+        <p class="text-sm sm:text-base text-slate-300 leading-relaxed mb-7">
+          Bookmark <span class="font-mono text-emerald-300 font-bold">247onoroff.com</span> to your home screen now while your head is clear—so the next time the heat rises, your exit ramp is one tap away.
+        </p>
+        <button
+          type="button"
+          onclick="jumpToPlayground('off')"
+          class="touch-manipulation px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+        >
+          Open the 24/7 Playground
+        </button>
+        <p class="text-xs font-mono text-slate-400 mt-3.5">
+          Free • Instant • Works offline-ready in your mobile browser
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Minimal Discreet Footer -->
+  <footer class="border-t border-slate-800/80 py-6 px-4 sm:px-6 bg-slate-950 text-center text-xs text-slate-500">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span class="font-mono font-semibold text-slate-400">247ONOROFF.COM — ON = Fire • OFF = Safe Mode</span>
+      <span>100% Local Browser Storage • No Accounts • No Tracking</span>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- INTERACTIVE ENGINE SCRIPT                                 -->
+  <!-- ========================================================= -->
+  <script>
+    // Storage Keys
+    const STORAGE_KEYS = {
+      MODE: '247_mode_v2',
+      SAFE_START: '247_safe_start_v2',
+      MIRROR: '247_mirror_statement_v2',
+      LOGS: '247_trigger_logs_v2'
+    };
+
+    const DEFAULT_MIRROR = "A 5-minute impulse is never worth days of fog and regret. Cool down first—decide tomorrow.";
+
+    const MIRROR_PRESETS = [
+      "A 5-minute impulse is never worth days of fog and regret. Cool down first—decide tomorrow.",
+      "I am not giving up what I respect most for something that fades in five minutes.",
+      "My peace of mind tomorrow morning is worth more than temporary heat tonight.",
+      "Put the phone down, drink a glass of cold water, and let the wave pass."
+    ];
+
+    const GROUNDING_PROMPTS = [
+      "Put your feet flat on the floor. Drop your shoulders away from your ears. Name 3 physical objects in the room around you right now.",
+      "Stand up and walk to another room or splash cold water on your face for 15 seconds. Physical temperature change breaks mental tunnel vision.",
+      "Place your phone screen-down on a table across the room until the 60-second timer finishes.",
+      "Notice the urge as temporary brain chemistry—like weather passing through. You do not have to obey a thought just because it feels loud."
+    ];
+
+    let currentMode = 'off';
+    let selectedCategory = 'Lust';
+    let presetIndex = 0;
+    let groundingIndex = 0;
+
+    // Breathing Timer State
+    let breathInterval = null;
+    let breathPhaseTimeout = null;
+    let breathRunning = false;
+    let breathSecondsLeft = 60;
+
+    // Initialize Application
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load saved mirror statement
+      const savedMirror = localStorage.getItem(STORAGE_KEYS.MIRROR) || DEFAULT_MIRROR;
+      document.getElementById('mirror-input').value = savedMirror;
+      document.getElementById('fire-mirror-display').textContent = `"${savedMirror}"`;
+
+      // Ensure safe mode start timestamp exists
+      if (!localStorage.getItem(STORAGE_KEYS.SAFE_START)) {
+        localStorage.setItem(STORAGE_KEYS.SAFE_START, Date.now().toString());
+      }
+
+      // Default category highlight
+      selectTriggerCategory('Lust');
+
+      // Render logs
+      renderTriggerLogs();
+
+      // Start live Safe Mode clock
+      updateSafeUptime();
+      setInterval(updateSafeUptime, 1000);
+
+      // Restore mode
+      const savedMode = localStorage.getItem(STORAGE_KEYS.MODE) || 'off';
+      setMode(savedMode);
+    });
+
+    // Jump smoothly to playground and activate chosen mode
+    function jumpToPlayground(targetMode) {
+      setMode(targetMode);
+      const el = document.getElementById('playground');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Explicit Binary Mode Switcher ('on' = Fire, 'off' = Safe Mode)
+    function setMode(mode) {
+      currentMode = mode === 'on' ? 'on' : 'off';
+      localStorage.setItem(STORAGE_KEYS.MODE, currentMode);
+
+      const panelOn = document.getElementById('panel-on');
+      const panelOff = document.getElementById('panel-off');
+      const btnOn = document.getElementById('btn-mode-on');
+      const btnOff = document.getElementById('btn-mode-off');
+      const statusBadge = document.getElementById('live-status-badge');
+      const navDot = document.getElementById('nav-status-dot');
+      const navAccent = document.getElementById('nav-brand-accent');
+      const heroGlow = document.getElementById('hero-glow');
+      const playgroundCard = document.getElementById('playground-card');
+
+      if (currentMode === 'on') {
+        // Show Fire Panel, Hide Safe Panel
+        panelOn.classList.remove('hidden');
+        panelOff.classList.add('hidden');
+
+        // Active ON button styling
+        btnOn.className = "touch-manipulation relative z-10 flex flex-col items-center justify-center py-4 px-3 rounded-2xl border-2 border-amber-400 bg-amber-500/20 text-amber-200 shadow-lg shadow-amber-500/15 active:scale-[0.98] transition-all cursor-pointer";
+        btnOff.className = "touch-manipulation relative z-10 flex flex-col items-center justify-center py-4 px-3 rounded-2xl border-2 border-slate-800 bg-slate-900/80 text-slate-400 hover:border-emerald-500/50 hover:text-emerald-300 active:scale-[0.98] transition-all cursor-pointer";
+
+        // Update Chrome Accents to Fire State
+        statusBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> SYSTEM: ON (FIRE)`;
+        navDot.className = "w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.9)] transition-all duration-300";
+        navAccent.className = "text-amber-400 transition-colors duration-300";
+        heroGlow.className = "pointer-events-none absolute -top-28 left-1/2 -translate-x-1/2 w-[540px] h-[280px] rounded-full bg-amber-500/15 blur-3xl transition-colors duration-700";
+        playgroundCard.className = "rounded-3xl bg-slate-900/95 border border-amber-500/40 shadow-2xl shadow-amber-950/30 overflow-hidden transition-all duration-500";
+
+        // Sync latest mirror statement
+        const latestMirror = document.getElementById('mirror-input').value.trim() || DEFAULT_MIRROR;
+        document.getElementById('fire-mirror-display').textContent = `"${latestMirror}"`;
+      } else {
+        // Stop breathing loop if running
+        resetBreathing();
+
+        // Show Safe Panel, Hide Fire Panel
+        panelOff.classList.remove('hidden');
+        panelOn.classList.add('hidden');
+
+        // Active OFF button styling
+        btnOff.className = "touch-manipulation relative z-10 flex flex-col items-center justify-center py-4 px-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/15 text-emerald-300 shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer";
+        btnOn.className = "touch-manipulation relative z-10 flex flex-col items-center justify-center py-4 px-3 rounded-2xl border-2 border-slate-800 bg-slate-900/80 text-slate-400 hover:border-amber-500/50 hover:text-amber-300 active:scale-[0.98] transition-all cursor-pointer";
+
+        // Update Chrome Accents to Safe Mode
+        statusBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> SYSTEM: SAFE MODE`;
+        navDot.className = "w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] transition-all duration-300";
+        navAccent.className = "text-emerald-400 transition-colors duration-300";
+        heroGlow.className = "pointer-events-none absolute -top-28 left-1/2 -translate-x-1/2 w-[540px] h-[280px] rounded-full bg-emerald-500/10 blur-3xl transition-colors duration-700";
+        playgroundCard.className = "rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden transition-all duration-500";
+      }
+    }
+
+    // 60-Second Physiological Sigh Loop (12s per cycle: 2.5s Inhale 1 -> 1.5s Top-Up Inhale 2 -> 2s Hold -> 6s Long Exhale)
+    function toggleBreathing() {
+      if (breathRunning) {
+        pauseBreathing();
+      } else {
+        startBreathing();
+      }
+    }
+
+    function startBreathing() {
+      if (breathSecondsLeft <= 0) breathSecondsLeft = 60;
+      breathRunning = true;
+      document.getElementById('btn-breath-toggle').textContent = 'Pause Reset';
+
+      runBreathCycle();
+      breathInterval = setInterval(() => {
+        breathSecondsLeft--;
+        updateBreathTimerDisplay();
+        if (breathSecondsLeft <= 0) {
+          completeBreathing();
+        }
+      }, 1000);
+    }
+
+    function runBreathCycle() {
+      if (!breathRunning) return;
+      const orb = document.getElementById('breath-orb');
+      const cue = document.getElementById('breath-cue');
+      const subcue = document.getElementById('breath-subcue');
+
+      // Step 1: First Nose Inhale (2.5s)
+      orb.className = "w-28 h-28 rounded-full bg-gradient-to-br from-amber-500/40 to-orange-600/30 border-2 border-amber-300 shadow-[0_0_45px_rgba(245,158,11,0.45)] flex flex-col items-center justify-center px-2 inhale-1";
+      cue.textContent = "Inhale";
+      subcue.textContent = "Deep through nose";
+
+      breathPhaseTimeout = setTimeout(() => {
+        if (!breathRunning) return;
+        // Step 2: Second Quick Top-Up Inhale (1.5s)
+        orb.classList.remove('inhale-1');
+        orb.classList.add('inhale-2');
+        cue.textContent = "Sip More Air";
+        subcue.textContent = "2nd quick inhale";
+
+        breathPhaseTimeout = setTimeout(() => {
+          if (!breathRunning) return;
+          // Step 3: Brief Hold (2s)
+          orb.classList.remove('inhale-2');
+          orb.classList.add('hold');
+          cue.textContent = "Hold";
+          subcue.textContent = "Steady & still";
+
+          breathPhaseTimeout = setTimeout(() => {
+            if (!breathRunning) return;
+            // Step 4: Long Slow Exhale (6s)
+            orb.className = "w-28 h-28 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-600/20 border-2 border-emerald-400/80 shadow-[0_0_30px_rgba(52,211,153,0.25)] flex flex-col items-center justify-center px-2 exhale";
+            cue.textContent = "Long Exhale";
+            subcue.textContent = "Slowly through mouth";
+
+            breathPhaseTimeout = setTimeout(() => {
+              if (breathRunning && breathSecondsLeft > 0) {
+                runBreathCycle();
+              }
+            }, 6000);
+          }, 2000);
+        }, 1500);
+      }, 2500);
+    }
+
+    function pauseBreathing() {
+      breathRunning = false;
+      clearInterval(breathInterval);
+      clearTimeout(breathPhaseTimeout);
+      document.getElementById('btn-breath-toggle').textContent = 'Resume Reset';
+      document.getElementById('breath-cue').textContent = 'Paused';
+    }
+
+    function resetBreathing() {
+      breathRunning = false;
+      clearInterval(breathInterval);
+      clearTimeout(breathPhaseTimeout);
+      breathSecondsLeft = 60;
+      updateBreathTimerDisplay();
+      const orb = document.getElementById('breath-orb');
+      if (orb) {
+        orb.className = "w-28 h-28 rounded-full bg-gradient-to-br from-amber-500/30 to-red-600/30 border-2 border-amber-400/70 shadow-[0_0_35px_rgba(245,158,11,0.25)] flex flex-col items-center justify-center px-2";
+      }
+      const btn = document.getElementById('btn-breath-toggle');
+      if (btn) btn.textContent = 'Start 60s Reset';
+      const cue = document.getElementById('breath-cue');
+      if (cue) cue.textContent = 'Ready';
+      const subcue = document.getElementById('breath-subcue');
+      if (subcue) subcue.textContent = 'Physiological Sigh';
+    }
+
+    function completeBreathing() {
+      breathRunning = false;
+      clearInterval(breathInterval);
+      clearTimeout(breathPhaseTimeout);
+      document.getElementById('breath-cue').textContent = 'Cooled Down';
+      document.getElementById('breath-subcue').textContent = '60s Complete';
+      document.getElementById('btn-breath-toggle').textContent = 'Run Another 60s';
+    }
+
+    function updateBreathTimerDisplay() {
+      const mins = Math.floor(breathSecondsLeft / 60).toString().padStart(2, '0');
+      const secs = (breathSecondsLeft % 60).toString().padStart(2, '0');
+      document.getElementById('breath-timer-display').textContent = `${mins}:${secs}`;
+    }
+
+    // Cycle Automated Grounding Prompts
+    function nextGroundingPrompt() {
+      groundingIndex = (groundingIndex + 1) % GROUNDING_PROMPTS.length;
+      document.getElementById('system-grounding-text').textContent = GROUNDING_PROMPTS[groundingIndex];
+    }
+
+    // Safe Mode Uptime Counter
+    function updateSafeUptime() {
+      const start = parseInt(localStorage.getItem(STORAGE_KEYS.SAFE_START) || Date.now().toString(), 10);
+      const diff = Math.max(0, Math.floor((Date.now() - start) / 1000));
+      const days = Math.floor(diff / 86400).toString().padStart(2, '0');
+      const hours = Math.floor((diff % 86400) / 3600).toString().padStart(2, '0');
+      const mins = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+      const secs = (diff % 60).toString().padStart(2, '0');
+      const el = document.getElementById('safe-uptime-display');
+      if (el) {
+        el.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+      }
+    }
+
+    function resetSafeTimer() {
+      localStorage.setItem(STORAGE_KEYS.SAFE_START, Date.now().toString());
+      updateSafeUptime();
+    }
+
+    // Mirror Check Persistence & Presets
+    function saveMirrorStatement() {
+      const val = document.getElementById('mirror-input').value;
+      localStorage.setItem(STORAGE_KEYS.MIRROR, val);
+      document.getElementById('fire-mirror-display').textContent = `"${val.trim() || DEFAULT_MIRROR}"`;
+      const status = document.getElementById('mirror-save-status');
+      status.textContent = '✓ Saved locally';
+    }
+
+    function cycleMirrorPreset() {
+      const text = MIRROR_PRESETS[presetIndex];
+      presetIndex = (presetIndex + 1) % MIRROR_PRESETS.length;
+      const input = document.getElementById('mirror-input');
+      input.value = text;
+      saveMirrorStatement();
+    }
+
+    // Trigger Log Controls
+    function selectTriggerCategory(cat) {
+      selectedCategory = cat;
+      document.querySelectorAll('.trigger-chip').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-extrabold bg-emerald-500 text-slate-950 border border-emerald-400 transition-all";
+        } else {
+          btn.className = "trigger-chip touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-slate-300 border border-slate-700 hover:border-emerald-400 transition-all";
+        }
+      });
+    }
+
+    function logTriggerEntry() {
+      const noteInput = document.getElementById('trigger-note-input');
+      const note = noteInput.value.trim();
+      const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOGS) || '[]');
+
+      logs.unshift({
+        id: Date.now(),
+        category: selectedCategory,
+        note: note,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })
+      });
+
+      // Keep latest 30 entries locally
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs.slice(0, 30)));
+      noteInput.value = '';
+      renderTriggerLogs();
+    }
+
+    function renderTriggerLogs() {
+      const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOGS) || '[]');
+      const listEl = document.getElementById('trigger-log-list');
+      const summaryEl = document.getElementById('pattern-summary');
+
+      if (logs.length === 0) {
+        summaryEl.innerHTML = '';
+        listEl.innerHTML = `<div class="text-xs text-slate-500 italic py-2">No triggers logged yet. Tap a category above whenever you spot a pattern.</div>`;
+        return;
+      }
+
+      // Compute category counts
+      const counts = {};
+      logs.forEach(item => {
+        counts[item.category] = (counts[item.category] || 0) + 1;
+      });
+
+      summaryEl.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([cat, count]) => `
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-[11px] font-mono text-slate-300">
+            ${escapeHtml(cat)}: <strong class="text-emerald-400">${count}</strong>
+          </span>
+        `).join('');
+
+      listEl.innerHTML = logs.map(item => `
+        <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+          <div class="truncate">
+            <span class="font-bold text-emerald-300">${escapeHtml(item.category)}</span>
+            ${item.note ? `<span class="text-slate-300"> — ${escapeHtml(item.note)}</span>` : ''}
+          </div>
+          <span class="text-[10px] font-mono text-slate-500 whitespace-nowrap">${escapeHtml(item.timestamp)}</span>
+        </div>
+      `).join('');
+    }
+
+    function clearAllLocalData() {
+      localStorage.removeItem(STORAGE_KEYS.LOGS);
+      localStorage.removeItem(STORAGE_KEYS.MIRROR);
+      localStorage.setItem(STORAGE_KEYS.SAFE_START, Date.now().toString());
+      document.getElementById('mirror-input').value = DEFAULT_MIRROR;
+      document.getElementById('fire-mirror-display').textContent = `"${DEFAULT_MIRROR}"`;
+      renderTriggerLogs();
+      updateSafeUptime();
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
