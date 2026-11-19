@@ -26,6 +26,11 @@
     }
   </script>
   <style>
+    if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+    }
     body {
       -webkit-tap-highlight-color: transparent;
       transition: background-color 0.45s ease, color 0.35s ease;
