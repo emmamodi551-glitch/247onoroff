@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>24/7 ON or OFF — Private Impulse Circuit Breaker (247onoroff.com)</title>
   <meta name="description" content="ON means Fire. OFF means Safe Mode. A private, zero-judgment 24/7 circuit breaker to cool down impulses before you cross a line." />
+
+  <!-- PWA Manifest & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#020617" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="24/7 On/Off" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,11 +35,6 @@
     }
   </script>
   <style>
-    if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-    }
     body {
       -webkit-tap-highlight-color: transparent;
       transition: background-color 0.45s ease, color 0.35s ease;
@@ -66,22 +70,16 @@
       border-radius: 9999px;
     }
   </style>
-  <link rel="manifest" href="./manifest.json" />
-<meta name="theme-color" content="#020617" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="24/7 On/Off" />
-<link rel="apple-touch-icon" href="./icon-192.png" />
 </head>
 <body id="app-body" class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200 min-h-screen flex flex-col">
 
   <!-- Top Sticky Navigation Bar -->
   <header id="top-nav" class="sticky top-0 z-40 backdrop-blur-md bg-slate-950/85 border-b border-slate-800/80 transition-colors duration-500">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
       <!-- Brand Identity -->
-      <a href="#top" class="flex items-center gap-2.5 group focus:outline-none">
+      <a href="#top" class="flex items-center gap-2 group focus:outline-none shrink-0">
         <div id="nav-status-dot" class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] transition-all duration-300"></div>
-        <span class="font-extrabold tracking-tight text-base sm:text-lg text-white">
+        <span class="font-extrabold tracking-tight text-sm sm:text-lg text-white">
           24/7 <span id="nav-brand-accent" class="text-emerald-400 transition-colors duration-300">ON or OFF</span>
         </span>
       </a>
@@ -94,19 +92,30 @@
         <a href="#privacy" class="hover:text-white transition-colors">Privacy</a>
       </nav>
 
-      <!-- Instant Header Mode Status Pill -->
-      <div class="flex items-center gap-2">
+      <!-- Instant Header Mode Status Pill + Non-Intrusive PWA Install Button -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button
+          id="pwa-install-btn"
+          type="button"
+          onclick="triggerPwaInstall()"
+          class="hidden touch-manipulation items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide bg-slate-800/90 hover:bg-slate-700 text-slate-100 border border-slate-600/80 active:scale-95 transition-all"
+          title="Install 24/7 ON or OFF to your device"
+        >
+          <span>📲</span>
+          <span>Install<span class="hidden sm:inline"> App</span></span>
+        </button>
+
         <button
           type="button"
           onclick="jumpToPlayground('on')"
-          class="touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all"
+          class="touch-manipulation px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all"
         >
           🔥 ON
         </button>
         <button
           type="button"
           onclick="jumpToPlayground('off')"
-          class="touch-manipulation px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 active:scale-95 transition-all"
+          class="touch-manipulation px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 active:scale-95 transition-all"
         >
           🛡️ OFF
         </button>
@@ -617,17 +626,28 @@
           24 Hours a Day. 7 Days a Week. You Hold the Switch.
         </h2>
         <p class="text-sm sm:text-base text-slate-300 leading-relaxed mb-7">
-          Bookmark <span class="font-mono text-emerald-300 font-bold">247onoroff.com</span> to your home screen now while your head is clear—so the next time the heat rises, your exit ramp is one tap away.
+          Install <span class="font-mono text-emerald-300 font-bold">24/7 ON or OFF</span> to your home screen now while your head is clear—so the next time the heat rises, your exit ramp is one tap away.
         </p>
-        <button
-          type="button"
-          onclick="jumpToPlayground('off')"
-          class="touch-manipulation px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
-        >
-          Open the 24/7 Playground
-        </button>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onclick="jumpToPlayground('off')"
+            class="touch-manipulation w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+          >
+            Open the 24/7 Playground
+          </button>
+          <button
+            id="pwa-install-btn-footer"
+            type="button"
+            onclick="triggerPwaInstall()"
+            class="hidden touch-manipulation w-full sm:w-auto items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 font-bold text-base active:scale-[0.98] transition-all"
+          >
+            <span>📲</span>
+            <span>Install to Home Screen</span>
+          </button>
+        </div>
         <p class="text-xs font-mono text-slate-400 mt-3.5">
-          Free • Instant • Works offline-ready in your mobile browser
+          Free • Instant • Offline-ready PWA in your mobile browser
         </p>
       </div>
     </section>
@@ -643,7 +663,7 @@
   </footer>
 
   <!-- ========================================================= -->
-  <!-- INTERACTIVE ENGINE SCRIPT                                 -->
+  <!-- INTERACTIVE ENGINE & PWA INSTALL SCRIPT                   -->
   <!-- ========================================================= -->
   <script>
     // Storage Keys
@@ -680,6 +700,58 @@
     let breathPhaseTimeout = null;
     let breathRunning = false;
     let breathSecondsLeft = 60;
+
+    // PWA Deferred Install Prompt State
+    let deferredInstallPrompt = null;
+
+    function showInstallButtons() {
+      const headerBtn = document.getElementById('pwa-install-btn');
+      const footerBtn = document.getElementById('pwa-install-btn-footer');
+      if (headerBtn) {
+        headerBtn.classList.remove('hidden');
+        headerBtn.classList.add('inline-flex');
+      }
+      if (footerBtn) {
+        footerBtn.classList.remove('hidden');
+        footerBtn.classList.add('inline-flex');
+      }
+    }
+
+    function hideInstallButtons() {
+      const headerBtn = document.getElementById('pwa-install-btn');
+      const footerBtn = document.getElementById('pwa-install-btn-footer');
+      if (headerBtn) {
+        headerBtn.classList.add('hidden');
+        headerBtn.classList.remove('inline-flex');
+      }
+      if (footerBtn) {
+        footerBtn.classList.add('hidden');
+        footerBtn.classList.remove('inline-flex');
+      }
+    }
+
+    // Listen for browser PWA install readiness
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      showInstallButtons();
+    });
+
+    // Hide install buttons once the app is installed
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      hideInstallButtons();
+    });
+
+    async function triggerPwaInstall() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredInstallPrompt = null;
+        hideInstallButtons();
+      }
+    }
 
     // Initialize Application
     document.addEventListener('DOMContentLoaded', () => {
@@ -774,7 +846,7 @@
       }
     }
 
-    // 60-Second Physiological Sigh Loop (12s per cycle: 2.5s Inhale 1 -> 1.5s Top-Up Inhale 2 -> 2s Hold -> 6s Long Exhale)
+    // 60-Second Physiological Sigh Loop
     function toggleBreathing() {
       if (breathRunning) {
         pauseBreathing();
@@ -949,7 +1021,6 @@
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })
       });
 
-      // Keep latest 30 entries locally
       localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs.slice(0, 30)));
       noteInput.value = '';
       renderTriggerLogs();
@@ -966,7 +1037,6 @@
         return;
       }
 
-      // Compute category counts
       const counts = {};
       logs.forEach(item => {
         counts[item.category] = (counts[item.category] || 0) + 1;
@@ -1005,6 +1075,13 @@
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
+    }
+
+    // Register PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
     }
   </script>
 </body>
