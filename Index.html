@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>24/7 ON or OFF — Circuit Breaker & Safe Mode</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Smooth background and color transitions between Fire Mode (ON) and Safe Mode (OFF) */
+    body {
+      transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body.mode-on {
+      background-color: #160707;
+      color: #fef2f2;
+    }
+
+    body.mode-off {
+      background-color: #081016;
+      color: #f0fdf4;
+    }
+
+    /* Physiological Sigh / Thermal Drop Ring Animation */
+    .breath-orb {
+      transition: transform 0.6s ease, box-shadow 0.6s ease, border-color 0.4s ease;
+      will-change: transform;
+    }
+    .breath-orb.phase-inhale {
+      transition: transform 4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
+      transform: scale(1.24);
+      box-shadow: 0 0 36px rgba(245, 158, 11, 0.45);
+    }
+    .breath-orb.phase-hold {
+      transition: transform 2s ease-in-out, box-shadow 0.5s ease;
+      transform: scale(1.26);
+      box-shadow: 0 0 42px rgba(239, 68, 68, 0.55);
+    }
+    .breath-orb.phase-exhale {
+      transition: transform 6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease;
+      transform: scale(0.86);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
+    }
+
+    /* Ambient Glows */
+    @keyframes fireCardPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.22); }
+      50% { box-shadow: 0 0 32px rgba(239, 68, 68, 0.42); }
+    }
+    .glow-fire {
+      animation: fireCardPulse 2.8s infinite ease-in-out;
+    }
+
+    @keyframes safeCardPulse {
+      0%, 100% { box-shadow: 0 0 18px rgba(16, 185, 129, 0.14); }
+      50% { box-shadow: 0 0 28px rgba(6, 182, 212, 0.24); }
+    }
+    .glow-safe {
+      animation: safeCardPulse 4s infinite ease-in-out;
+    }
+
+    /* Subtle Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="mode-off min-h-screen antialiased selection:bg-emerald-500/30">
+
+  <!-- Non-blocking Toast Banner (Replaces alert/confirm) -->
+  <div id="toastBanner" role="status" aria-live="polite" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+    <div id="toastInner" class="rounded-xl px-4 py-3 text-xs font-medium shadow-2xl border backdrop-blur-md bg-slate-900/95 border-slate-700 text-slate-100 flex items-center justify-between gap-2">
+      <span id="toastText">System status updated</span>
+    </div>
+  </div>
+
+  <!-- Discreet Privacy Cloak Screen (Instant Weather Cover) -->
+  <div id="privacyCloak" class="hidden fixed inset-0 z-50 bg-slate-950 text-slate-200 flex flex-col justify-between p-6 max-w-md mx-auto">
+    <div>
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+          <span class="font-mono text-xs uppercase tracking-widest text-slate-400">ATMOS // LOCAL TELEMETRY</span>
+        </div>
+        <button type="button" onclick="toggleCloak()" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 hover:text-white active:scale-95 transition touch-manipulation">
+          UNLOCK
+        </button>
+      </div>
+
+      <div class="mt-8 bg-slate-900/70 border border-slate-800 rounded-2xl p-6">
+        <p class="text-xs font-mono text-slate-400 uppercase">Current Conditions • Local Station</p>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span class="text-5xl font-bold tracking-tight text-white">44°F</span>
+          <span class="text-sm text-sky-400 font-medium">Partly Cloudy</span>
+        </div>
+        <div class="mt-6 grid grid-cols-3 gap-3 border-t border-slate-800 pt-4 text-center">
+          <div>
+            <p class="text-[11px] text-slate-500 uppercase">Humidity</p>
+            <p class="font-mono text-sm font-semibold text-slate-200 mt-0.5">61%</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-slate-500 uppercase">Wind</p>
+            <p class="font-mono text-sm font-semibold text-slate-200 mt-0.5">7 mph NW</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-slate-500 uppercase">Pressure</p>
+            <p class="font-mono text-sm font-semibold text-slate-200 mt-0.5">30.14 in</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-[11px] font-mono text-slate-600">Tap UNLOCK in the top right to return</p>
+  </div>
+
+  <!-- Main Mobile-First Container -->
+  <div class="max-w-md mx-auto min-h-screen flex flex-col justify-between px-4 py-4 sm:py-6">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between gap-2 pb-4 border-b border-white/10">
+      <div class="flex items-center gap-2.5">
+        <div id="brandBadge" class="w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-xs tracking-tighter bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors duration-300">
+          24/7
+        </div>
+        <div>
+          <h1 class="text-sm font-extrabold tracking-tight leading-none">24/7 ON or OFF</h1>
+          <p id="headerSubtext" class="text-[11px] font-mono text-emerald-400 mt-1">STATUS: SAFE MODE</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="statusPill" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold tracking-wide uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+          <span id="statusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="statusPillText">OFF</span>
+        </span>
+
+        <!-- Discreet Cloak Trigger -->
+        <button type="button" onclick="toggleCloak()" title="Discreet Weather Cloak" aria-label="Toggle Discreet Cloak Screen" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 transition touch-manipulation">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 py-5 space-y-5">
+
+      <!-- MASTER CIRCUIT BREAKER SWITCH (Explicit 2-Button Grid with Zero Overlapping Hitboxes) -->
+      <section id="breakerCard" class="rounded-2xl p-4 sm:p-5 border border-emerald-500/25 bg-slate-900/75 backdrop-blur-md transition-all duration-300 glow-safe">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-mono uppercase tracking-widest text-slate-400">System Circuit Breaker</span>
+          <span id="breakerHint" class="text-[11px] font-medium text-emerald-400">Select system state</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 p-1.5 rounded-2xl bg-black/60 border border-white/10">
+          <!-- Explicit ON (FIRE) Button -->
+          <button
+            type="button"
+            id="btnModeOn"
+            onclick="setMode('on')"
+            aria-pressed="false"
+            class="relative z-10 py-3.5 px-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex flex-col items-center justify-center transition-all duration-200 cursor-pointer select-none touch-manipulation active:scale-[0.98] bg-transparent text-amber-300/75 border border-transparent hover:bg-amber-500/10"
+          >
+            <span class="font-extrabold tracking-wider">ON • FIRE</span>
+            <span id="btnModeOnSub" class="text-[10px] font-mono opacity-80 mt-0.5">URGE / HIGH HEAT</span>
+          </button>
+
+          <!-- Explicit OFF (SAFE MODE) Button -->
+          <button
+            type="button"
+            id="btnModeOff"
+            onclick="setMode('off')"
+            aria-pressed="true"
+            class="relative z-10 py-3.5 px-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex flex-col items-center justify-center transition-all duration-200 cursor-pointer select-none touch-manipulation active:scale-[0.98] bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-950 shadow-lg border border-emerald-300/40"
+          >
+            <span class="font-extrabold tracking-wider">OFF • SAFE MODE</span>
+            <span id="btnModeOffSub" class="text-[10px] font-mono opacity-90 mt-0.5">SYSTEM PROTECTED</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 1: ON (FIRE MODE — EMERGENCY CIRCUIT BREAKER)        -->
+      <!-- ========================================================= -->
+      <div id="viewModeOn" class="hidden space-y-4">
+
+        <!-- Urgent Grounding Callout -->
+        <div class="rounded-2xl p-4 bg-gradient-to-r from-red-950/95 to-amber-950/85 border border-amber-500/45 flex items-start gap-3">
+          <div class="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-amber-300">Fire Alert Active — Cool the System First</h2>
+            <p class="text-xs text-red-100/85 mt-1 leading-relaxed">
+              An urge is a temporary neurochemical spike. Do not act while overheated—ride out the 60-second thermal drop below.
+            </p>
+          </div>
+        </div>
+
+        <!-- 1. 60-Second Guided Physiological Sigh / Thermal Drop -->
+        <section class="rounded-2xl p-5 bg-red-950/45 border border-red-500/35 text-center space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300">1. 60s Thermal Drop</span>
+            <span id="breathCountdown" class="font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-red-900/90 text-amber-200 border border-amber-500/35">01:00</span>
+          </div>
+
+          <!-- Expanding / Contracting Breathing Orb -->
+          <div class="py-5 flex flex-col items-center justify-center">
+            <div id="breathOrb" class="breath-orb w-36 h-36 rounded-full bg-gradient-to-br from-amber-500/30 via-red-600/35 to-rose-950/60 border-2 border-amber-400/70 flex flex-col items-center justify-center p-3">
+              <span id="breathPhaseTitle" class="text-sm font-extrabold text-white tracking-wide uppercase">READY</span>
+              <span id="breathPhaseSub" class="text-[11px] text-amber-200/90 mt-1 leading-tight">4s Inhale • 2s Hold • 6s Exhale</span>
+            </div>
+          </div>
+
+          <!-- Start / Pause / Reset Controls -->
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" id="btnBreathStartPause" onclick="toggleBreathTimer()" class="col-span-2 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-extrabold text-xs tracking-wide transition shadow-lg touch-manipulation">
+              START 60s COOL-DOWN
+            </button>
+            <button type="button" onclick="resetBreathTimer()" class="py-3 px-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-[0.98] text-amber-200 border border-white/15 font-mono text-xs font-semibold transition touch-manipulation">
+              RESET
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. The Mirror Check (Saved Reality-Check Statement) -->
+        <section class="rounded-2xl p-5 bg-black/50 border border-amber-500/35 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400">2. The Mirror Check</span>
+            <span class="text-[10px] font-mono text-red-200/60">CLEAR-HEADED ANCHOR</span>
+          </div>
+          <blockquote id="fireMirrorDisplay" class="text-sm sm:text-base font-semibold text-white italic leading-relaxed border-l-2 border-amber-500 pl-3.5 py-1">
+            "Five minutes of cheap heat isn't worth resetting my peace, self-respect, and clarity tomorrow morning."
+          </blockquote>
+          <p class="text-[11px] text-red-200/75 pt-1">
+            Physical Circuit Breaker: Set your phone down for 15 seconds and splash cold water on your face or wrists.
+          </p>
+        </section>
+
+        <!-- 3. Signal Flare (Simulated Anonymous Peer Ping) -->
+        <section class="rounded-2xl p-5 bg-red-950/55 border border-red-500/35 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300">3. Signal Flare (Peer Ping)</span>
+            <span class="text-[10px] font-mono text-emerald-400 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> 24/7 ACTIVE
+            </span>
+          </div>
+
+          <div id="flarePromptArea">
+            <p class="text-xs text-red-100/80 mb-3 leading-relaxed">
+              No details or shame. Tap once to send an anonymous SOS flare and receive an instant peer grounding check-in.
+            </p>
+            <button type="button" onclick="triggerSignalFlare()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-lg transition flex items-center justify-center gap-2 touch-manipulation">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+              </svg>
+              Send Anonymous SOS Flare
+            </button>
+          </div>
+
+          <!-- Simulated Live Peer Grounding Feed -->
+          <div id="flareChatArea" class="hidden space-y-3 pt-1">
+            <div id="flareMessages" class="space-y-2 max-h-44 overflow-y-auto pr-1 text-xs"></div>
+
+            <div class="pt-2 border-t border-white/10">
+              <p class="text-[10px] font-mono text-amber-200/70 uppercase mb-2">1-Tap Grounding Replies:</p>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="sendPeerReply('Stepping away from the screen for 5 minutes.')" class="px-2.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition active:scale-95 touch-manipulation">
+                  Stepping away for 5 mins
+                </button>
+                <button type="button" onclick="sendPeerReply('Doing the 60s breathing reset right now.')" class="px-2.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition active:scale-95 touch-manipulation">
+                  Doing 60s breathing reset
+                </button>
+                <button type="button" onclick="sendPeerReply('Wave is dropping. Ready for Safe Mode.')" class="px-2.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition active:scale-95 touch-manipulation">
+                  Wave is dropping
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick-Action Flip Back to Safe Mode (OFF) -->
+        <button type="button" onclick="setMode('off')" class="w-full py-4 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-extrabold text-sm tracking-wide shadow-xl transition touch-manipulation">
+          COOLED DOWN — FLIP TO OFF (SAFE MODE)
+        </button>
+
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 2: OFF (SAFE MODE — SYSTEM PROTECTED & CONFIG)       -->
+      <!-- ========================================================= -->
+      <div id="viewModeOff" class="space-y-4">
+
+        <!-- 1. Live Safe Mode Elapsed Timer -->
+        <section class="rounded-2xl p-5 bg-slate-900/75 border border-emerald-500/25 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-emerald-400">Safe Mode Active Timer</span>
+            <button type="button" onclick="resetSafeModeTimer()" class="text-[11px] font-mono text-slate-400 hover:text-emerald-300 underline underline-offset-2 transition touch-manipulation">
+              Reset Timer
+            </button>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2 text-center py-1">
+            <div class="bg-black/45 border border-white/5 rounded-xl p-2.5">
+              <span id="timerDays" class="block font-mono text-xl sm:text-2xl font-bold text-white">00</span>
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Days</span>
+            </div>
+            <div class="bg-black/45 border border-white/5 rounded-xl p-2.5">
+              <span id="timerHours" class="block font-mono text-xl sm:text-2xl font-bold text-white">00</span>
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Hrs</span>
+            </div>
+            <div class="bg-black/45 border border-white/5 rounded-xl p-2.5">
+              <span id="timerMins" class="block font-mono text-xl sm:text-2xl font-bold text-emerald-400">00</span>
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Mins</span>
+            </div>
+            <div class="bg-black/45 border border-white/5 rounded-xl p-2.5">
+              <span id="timerSecs" class="block font-mono text-xl sm:text-2xl font-bold text-cyan-400">00</span>
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Secs</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <p class="text-xs text-slate-400">System grounded. Set your defenses while clear-headed.</p>
+            <button type="button" onclick="setMode('on')" class="shrink-0 ml-2 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-[11px] font-mono font-semibold text-amber-300 transition active:scale-95 touch-manipulation">
+              Test Fire Mode
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. The Mirror Check Editor (Auto-saves to localStorage) -->
+        <section class="rounded-2xl p-5 bg-slate-900/75 border border-white/10 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-mono uppercase tracking-wider text-cyan-300 font-semibold">The Mirror Check</h2>
+            <button type="button" onclick="cycleExamplePrompt()" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[11px] font-mono text-emerald-300 transition active:scale-95 touch-manipulation">
+              + Example Prompt
+            </button>
+          </div>
+
+          <p class="text-[11px] text-slate-400">
+            Write your clear-headed reality check below. It auto-saves locally and displays immediately whenever you switch to <span class="text-amber-300 font-semibold">ON (Fire Mode)</span>.
+          </p>
+
+          <textarea
+            id="mirrorEditor"
+            rows="3"
+            oninput="handleMirrorAutoSave(this.value)"
+            placeholder="Write a direct reminder to your future heated self..."
+            class="w-full rounded-xl bg-black/50 border border-slate-700/80 focus:border-emerald-400 focus:outline-none p-3 text-xs sm:text-sm text-white placeholder-slate-500 leading-relaxed transition"
+          ></textarea>
+
+          <div class="flex items-center justify-between text-[10px] font-mono text-slate-500">
+            <span id="mirrorSaveStatus" class="text-emerald-400/90">Auto-saved locally</span>
+            <span>Shown in Fire Mode</span>
+          </div>
+        </section>
+
+        <!-- 3. Anonymous Local Trigger Log -->
+        <section class="rounded-2xl p-5 bg-slate-900/75 border border-white/10 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold">Anonymous Local Trigger Log</h2>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">100% PRIVATE</span>
+          </div>
+
+          <p class="text-[11px] text-slate-400">
+            Add an optional context note, then tap a category chip to spot your patterns privately:
+          </p>
+
+          <!-- Optional Context Note Input -->
+          <input
+            type="text"
+            id="triggerContextInput"
+            maxlength="90"
+            placeholder="Optional context note (e.g., 'Scrolling in bed after midnight')..."
+            class="w-full rounded-xl bg-black/45 border border-slate-700/80 focus:border-emerald-400 focus:outline-none px-3.5 py-2.5 text-xs text-white placeholder-slate-500 transition"
+          />
+
+          <!-- Category Chips -->
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="addTriggerEntry('Lust')" class="px-3 py-2 rounded-xl bg-black/45 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/45 text-xs font-medium text-slate-200 transition active:scale-95 touch-manipulation">+ Lust</button>
+            <button type="button" onclick="addTriggerEntry('Stress')" class="px-3 py-2 rounded-xl bg-black/45 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/45 text-xs font-medium text-slate-200 transition active:scale-95 touch-manipulation">+ Stress</button>
+            <button type="button" onclick="addTriggerEntry('Boredom')" class="px-3 py-2 rounded-xl bg-black/45 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/45 text-xs font-medium text-slate-200 transition active:scale-95 touch-manipulation">+ Boredom</button>
+            <button type="button" onclick="addTriggerEntry('Late Night')" class="px-3 py-2 rounded-xl bg-black/45 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/45 text-xs font-medium text-slate-200 transition active:scale-95 touch-manipulation">+ Late Night</button>
+            <button type="button" onclick="addTriggerEntry('Anger')" class="px-3 py-2 rounded-xl bg-black/45 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/45 text-xs font-medium text-slate-200 transition active:scale-95 touch-manipulation">+ Anger</button>
+            <button type="button" onclick="addTriggerEntry('Scrolling')" class="px-3 py-2 rounded-xl bg-black/45 hover:bg-emerald-500/20 border border-slate-700 hover:border-emerald-500/45 text-xs font-medium text-slate-200 transition active:scale-95 touch-manipulation">+ Scrolling</button>
+          </div>
+
+          <!-- Live Pattern Summary Counts -->
+          <div id="patternSummaryBar" class="flex flex-wrap gap-1.5 pt-1"></div>
+
+          <!-- Recent Log List -->
+          <div id="triggerLogList" class="space-y-2 max-h-48 overflow-y-auto pt-1"></div>
+
+          <!-- One-Tap Privacy Wipe Footer -->
+          <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+            <span class="text-[10px] font-mono text-slate-500">Stored strictly in local browser storage</span>
+            <button type="button" onclick="clearLocalData()" class="px-3 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/35 text-[11px] font-mono font-semibold text-rose-300 transition active:scale-95 touch-manipulation">
+              Clear Local Data
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="pt-4 border-t border-white/10 text-center space-y-1">
+      <p class="text-[11px] font-mono text-slate-400">247onoroff.com • 24/7 Circuit Breaker</p>
+      <p class="text-[10px] text-slate-500">Zero logins • Zero external tracking • Runs 100% locally</p>
+    </footer>
+
+  </div>
+
+  <!-- Application Script -->
+  <script>
+    // =========================================================
+    // 1. STORAGE & DEFAULT STATE
+    // =========================================================
+    const STORAGE_KEY = 'onoroff_247_state_v2';
+
+    const EXAMPLE_PROMPTS = [
+      "Five minutes of cheap heat isn't worth resetting my peace, self-respect, and clarity tomorrow morning.",
+      "This urge is just a temporary chemical wave. If I ride it out for 60 seconds, I stay in command of my life.",
+      "I don't trade what I want most for what I want right now. Put the phone down and breathe.",
+      "Future me will thank present me for flipping back to Safe Mode right now."
+    ];
+
+    let exampleIndex = 0;
+
+    function getInitialState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            mode: parsed.mode === 'on' ? 'on' : 'off',
+            safeModeStart: typeof parsed.safeModeStart === 'number' ? parsed.safeModeStart : Date.now(),
+            mirrorStatement: typeof parsed.mirrorStatement === 'string' && parsed.mirrorStatement.trim()
+              ? parsed.mirrorStatement
+              : EXAMPLE_PROMPTS[0],
+            triggers: Array.isArray(parsed.triggers) ? parsed.triggers : []
+          };
+        }
+      } catch (err) {
+        // Fallback if localStorage is restricted
+      }
+      return {
+        mode: 'off',
+        safeModeStart: Date.now() - (1000 * 60 * 60 * 3 + 1000 * 60 * 18), // Default 3h 18m active safe mode
+        mirrorStatement: EXAMPLE_PROMPTS[0],
+        triggers: [
+          { category: 'Late Night', note: 'Doomscrolling in bed after midnight', timestamp: 'Yesterday, 11:48 PM' },
+          { category: 'Stress', note: 'Tense afternoon deadline', timestamp: '2 days ago, 4:20 PM' }
+        ]
+      };
+    }
+
+    let state = getInitialState();
+
+    function persistState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        // Ignore storage quota errors
+      }
+    }
+
+    // =========================================================
+    // 2. EXPLICIT MODE SWITCHING: setMode('on') & setMode('off')
+    // =========================================================
+    function setMode(targetMode) {
+      const normalized = targetMode === 'on' ? 'on' : 'off';
+      state.mode = normalized;
+      persistState();
+
+      const body = document.body;
+      const viewOn = document.getElementById('viewModeOn');
+      const viewOff = document.getElementById('viewModeOff');
+      const breakerCard = document.getElementById('breakerCard');
+      const btnOn = document.getElementById('btnModeOn');
+      const btnOff = document.getElementById('btnModeOff');
+      const brandBadge = document.getElementById('brandBadge');
+      const headerSubtext = document.getElementById('headerSubtext');
+      const statusPill = document.getElementById('statusPill');
+      const statusDot = document.getElementById('statusDot');
+      const statusPillText = document.getElementById('statusPillText');
+      const breakerHint = document.getElementById('breakerHint');
+
+      if (normalized === 'on') {
+        // Apply Urgent Crimson/Amber Fire Theme
+        body.classList.remove('mode-off');
+        body.classList.add('mode-on');
+
+        viewOff.classList.add('hidden');
+        viewOn.classList.remove('hidden');
+
+        // Update Switch Buttons
+        btnOn.setAttribute('aria-pressed', 'true');
+        btnOn.className = 'relative z-10 py-3.5 px-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex flex-col items-center justify-center transition-all duration-200 cursor-pointer select-none touch-manipulation active:scale-[0.98] bg-gradient-to-br from-amber-500 to-red-600 text-slate-950 shadow-lg border border-amber-300/50';
+
+        btnOff.setAttribute('aria-pressed', 'false');
+        btnOff.className = 'relative z-10 py-3.5 px-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex flex-col items-center justify-center transition-all duration-200 cursor-pointer select-none touch-manipulation active:scale-[0.98] bg-transparent text-emerald-300/75 border border-transparent hover:bg-emerald-500/10';
+
+        // Update Card & Header Badges
+        breakerCard.className = 'rounded-2xl p-4 sm:p-5 border border-amber-500/40 bg-red-950/60 backdrop-blur-md transition-all duration-300 glow-fire';
+        brandBadge.className = 'w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-xs tracking-tighter bg-amber-500/25 text-amber-300 border border-amber-500/40 transition-colors duration-300';
+        headerSubtext.textContent = 'STATUS: FIRE MODE (ON)';
+        headerSubtext.className = 'text-[11px] font-mono text-amber-400 mt-1';
+
+        statusPill.className = 'px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold tracking-wide uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5';
+        statusDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+        statusPillText.textContent = 'ON';
+        breakerHint.textContent = 'Fire protocol active';
+        breakerHint.className = 'text-[11px] font-medium text-amber-400';
+
+        // Sync Mirror Check Display
+        document.getElementById('fireMirrorDisplay').textContent = `"${state.mirrorStatement}"`;
+      } else {
+        // Apply Calm Dark Slate/Emerald Safe Mode Theme
+        stopBreathInterval();
+
+        body.classList.remove('mode-on');
+        body.classList.add('mode-off');
+
+        viewOn.classList.add('hidden');
+        viewOff.classList.remove('hidden');
+
+        // Update Switch Buttons
+        btnOff.setAttribute('aria-pressed', 'true');
+        btnOff.className = 'relative z-10 py-3.5 px-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex flex-col items-center justify-center transition-all duration-200 cursor-pointer select-none touch-manipulation active:scale-[0.98] bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-950 shadow-lg border border-emerald-300/40';
+
+        btnOn.setAttribute('aria-pressed', 'false');
+        btnOn.className = 'relative z-10 py-3.5 px-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex flex-col items-center justify-center transition-all duration-200 cursor-pointer select-none touch-manipulation active:scale-[0.98] bg-transparent text-amber-300/75 border border-transparent hover:bg-amber-500/10';
+
+        // Update Card & Header Badges
+        breakerCard.className = 'rounded-2xl p-4 sm:p-5 border border-emerald-500/25 bg-slate-900/75 backdrop-blur-md transition-all duration-300 glow-safe';
+        brandBadge.className = 'w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-xs tracking-tighter bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors duration-300';
+        headerSubtext.textContent = 'STATUS: SAFE MODE';
+        headerSubtext.className = 'text-[11px] font-mono text-emerald-400 mt-1';
+
+        statusPill.className = 'px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold tracking-wide uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5';
+        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        statusPillText.textContent = 'OFF';
+        breakerHint.textContent = 'System protected';
+        breakerHint.className = 'text-[11px] font-medium text-emerald-400';
+
+        // Sync Editor Value
+        document.getElementById('mirrorEditor').value = state.mirrorStatement;
+      }
+    }
+
+    // =========================================================
+    // 3. 60-SECOND PHYSIOLOGICAL SIGH / THERMAL DROP TIMER
+    //    Cycle: 4s Double Inhale -> 2s Hold -> 6s Long Exhale (12s loop x 5 = 60s)
+    // =========================================================
+    let breathSecondsRemaining = 60;
+    let breathRunning = false;
+    let breathTimerId = null;
+
+    function formatClock(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateBreathVisuals() {
+      const orb = document.getElementById('breathOrb');
+      const titleEl = document.getElementById('breathPhaseTitle');
+      const subEl = document.getElementById('breathPhaseSub');
+      const countdownEl = document.getElementById('breathCountdown');
+
+      countdownEl.textContent = formatClock(breathSecondsRemaining);
+
+      if (!breathRunning) {
+        orb.className = 'breath-orb w-36 h-36 rounded-full bg-gradient-to-br from-amber-500/30 via-red-600/35 to-rose-950/60 border-2 border-amber-400/70 flex flex-col items-center justify-center p-3';
+        if (breathSecondsRemaining === 0) {
+          titleEl.textContent = 'COOLED';
+          subEl.textContent = '60s complete — ready for Safe Mode';
+        } else if (breathSecondsRemaining < 60) {
+          titleEl.textContent = 'PAUSED';
+          subEl.textContent = 'Tap Resume to continue';
+        } else {
+          titleEl.textContent = 'READY';
+          subEl.textContent = '4s Inhale • 2s Hold • 6s Exhale';
+        }
+        return;
+      }
+
+      // Elapsed within 60s -> 12-second cycle (0..3 Inhale, 4..5 Hold, 6..11 Exhale)
+      const elapsed = 60 - breathSecondsRemaining;
+      const cycleSecond = elapsed % 12;
+
+      orb.classList.remove('phase-inhale', 'phase-hold', 'phase-exhale');
+
+      if (cycleSecond < 4) {
+        orb.classList.add('phase-inhale');
+        titleEl.textContent = 'DOUBLE INHALE';
+        subEl.textContent = `Deep breath in through nose (${4 - cycleSecond}s)`;
+      } else if (cycleSecond < 6) {
+        orb.classList.add('phase-hold');
+        titleEl.textContent = 'HOLD';
+        subEl.textContent = `Hold steady (${6 - cycleSecond}s)`;
+      } else {
+        orb.classList.add('phase-exhale');
+        titleEl.textContent = 'LONG EXHALE';
+        subEl.textContent = `Slow release through mouth (${12 - cycleSecond}s)`;
+      }
+    }
+
+    function toggleBreathTimer() {
+      const btn = document.getElementById('btnBreathStartPause');
+
+      if (breathRunning) {
+        stopBreathInterval();
+        btn.textContent = 'RESUME COOL-DOWN';
+        updateBreathVisuals();
+        return;
+      }
+
+      if (breathSecondsRemaining <= 0) {
+        breathSecondsRemaining = 60;
+      }
+
+      breathRunning = true;
+      btn.textContent = 'PAUSE';
+      updateBreathVisuals();
+
+      breathTimerId = setInterval(() => {
+        breathSecondsRemaining -= 1;
+        if (breathSecondsRemaining <= 0) {
+          breathSecondsRemaining = 0;
+          stopBreathInterval();
+          btn.textContent = 'RESTART 60s';
+          updateBreathVisuals();
+          showToast('60-second thermal drop complete.');
+          return;
+        }
+        updateBreathVisuals();
+      }, 1000);
+    }
+
+    function stopBreathInterval() {
+      breathRunning = false;
+      if (breathTimerId) {
+        clearInterval(breathTimerId);
+        breathTimerId = null;
+      }
+    }
+
+    function resetBreathTimer() {
+      stopBreathInterval();
+      breathSecondsRemaining = 60;
+      document.getElementById('btnBreathStartPause').textContent = 'START 60s COOL-DOWN';
+      updateBreathVisuals();
+    }
+
+    // =========================================================
+    // 4. SIGNAL FLARE (ANONYMOUS PEER PING SIMULATOR)
+    // =========================================================
+    const PEER_GROUNDING_MESSAGES = [
+      "Peer #408 (On Duty): Flare received. You're not alone—step away from the screen for 3 minutes and breathe.",
+      "Peer #408 (On Duty): Keep your hands off the feed. Let the wave crest and drop. Still right here with you."
+    ];
+
+    function triggerSignalFlare() {
+      document.getElementById('flarePromptArea').classList.add('hidden');
+      const chatArea = document.getElementById('flareChatArea');
+      const msgBox = document.getElementById('flareMessages');
+      chatArea.classList.remove('hidden');
+
+      msgBox.innerHTML = `
+        <div class="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 font-mono text-[11px]">
+          [SOS FLARE SENT] Broadcasting anonymous check-in request...
+        </div>
+      `;
+      showToast('Anonymous Signal Flare sent');
+
+      setTimeout(() => {
+        appendFlareMessage('Peer #408', PEER_GROUNDING_MESSAGES[0], false);
+      }, 900);
+    }
+
+    function sendPeerReply(text) {
+      appendFlareMessage('You', text, true);
+      setTimeout(() => {
+        appendFlareMessage('Peer #408', PEER_GROUNDING_MESSAGES[1], false);
+      }, 1000);
+    }
+
+    function appendFlareMessage(sender, text, isSelf) {
+      const msgBox = document.getElementById('flareMessages');
+      const bubble = document.createElement('div');
+      bubble.className = isSelf
+        ? 'p-2.5 rounded-xl bg-white/10 border border-white/15 text-white ml-4'
+        : 'p-2.5 rounded-xl bg-emerald-950/75 border border-emerald-500/30 text-emerald-100 mr-4';
+      bubble.innerHTML = `<span class="block font-mono text-[10px] opacity-75 mb-0.5">${escapeHtml(sender)}</span><span>${escapeHtml(text)}</span>`;
+      msgBox.appendChild(bubble);
+      msgBox.scrollTop = msgBox.scrollHeight;
+    }
+
+    // =========================================================
+    // 5. SAFE MODE ELAPSED TIMER
+    // =========================================================
+    function updateSafeModeClock() {
+      const diffMs = Math.max(0, Date.now() - state.safeModeStart);
+      const totalSecs = Math.floor(diffMs / 1000);
+      const days = Math.floor(totalSecs / 86400);
+      const hours = Math.floor((totalSecs % 86400) / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+
+      document.getElementById('timerDays').textContent = String(days).padStart(2, '0');
+      document.getElementById('timerHours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('timerMins').textContent = String(mins).padStart(2, '0');
+      document.getElementById('timerSecs').textContent = String(secs).padStart(2, '0');
+    }
+
+    function resetSafeModeTimer() {
+      state.safeModeStart = Date.now();
+      persistState();
+      updateSafeModeClock();
+      showToast('Safe Mode timer reset to 00:00:00');
+    }
+
+    // =========================================================
+    // 6. THE MIRROR CHECK AUTO-SAVE & EXAMPLE PROMPTS
+    // =========================================================
+    let mirrorSaveDebounce = null;
+
+    function handleMirrorAutoSave(value) {
+      const statusEl = document.getElementById('mirrorSaveStatus');
+      statusEl.textContent = 'Saving...';
+      statusEl.className = 'text-amber-400';
+
+      clearTimeout(mirrorSaveDebounce);
+      mirrorSaveDebounce = setTimeout(() => {
+        const cleaned = value.trim();
+        state.mirrorStatement = cleaned || EXAMPLE_PROMPTS[0];
+        persistState();
+        document.getElementById('fireMirrorDisplay').textContent = `"${state.mirrorStatement}"`;
+        statusEl.textContent = 'Auto-saved locally';
+        statusEl.className = 'text-emerald-400/90';
+      }, 250);
+    }
+
+    function cycleExamplePrompt() {
+      exampleIndex = (exampleIndex + 1) % EXAMPLE_PROMPTS.length;
+      const chosen = EXAMPLE_PROMPTS[exampleIndex];
+      const editor = document.getElementById('mirrorEditor');
+      editor.value = chosen;
+      state.mirrorStatement = chosen;
+      persistState();
+      document.getElementById('fireMirrorDisplay').textContent = `"${chosen}"`;
+      document.getElementById('mirrorSaveStatus').textContent = 'Auto-saved locally';
+      showToast('Loaded & saved example anchor prompt');
+    }
+
+    // =========================================================
+    // 7. ANONYMOUS LOCAL TRIGGER LOG & PATTERN SUMMARY
+    // =========================================================
+    function addTriggerEntry(category) {
+      const noteInput = document.getElementById('triggerContextInput');
+      const note = noteInput.value.trim();
+      const now = new Date();
+      const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      state.triggers.unshift({
+        category,
+        note,
+        timestamp: `Today, ${timeFormatted}`
+      });
+
+      if (state.triggers.length > 30) {
+        state.triggers.pop();
+      }
+
+      noteInput.value = '';
+      persistState();
+      renderTriggerSection();
+      showToast(`Logged trigger: #${category}`);
+    }
+
+    function renderTriggerSection() {
+      const summaryBar = document.getElementById('patternSummaryBar');
+      const listContainer = document.getElementById('triggerLogList');
+
+      if (!state.triggers || state.triggers.length === 0) {
+        summaryBar.innerHTML = '';
+        listContainer.innerHTML = `<p class="text-[11px] font-mono text-slate-500 py-1">No triggers logged yet. Tap a category above to track patterns.</p>`;
+        return;
+      }
+
+      // Calculate Pattern Counts
+      const counts = {};
+      state.triggers.forEach((entry) => {
+        counts[entry.category] = (counts[entry.category] || 0) + 1;
+      });
+
+      const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      summaryBar.innerHTML = sortedCounts
+        .map(([cat, count]) => `
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono font-semibold text-emerald-300">
+            #${escapeHtml(cat)}: ${count}
+          </span>
+        `)
+        .join('');
+
+      listContainer.innerHTML = state.triggers
+        .map((entry) => `
+          <div class="rounded-xl bg-black/40 border border-white/5 px-3 py-2.5 space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-emerald-300">#${escapeHtml(entry.category)}</span>
+              <span class="font-mono text-[10px] text-slate-400">${escapeHtml(entry.timestamp)}</span>
+            </div>
+            ${entry.note ? `<p class="text-[11px] text-slate-300 leading-snug">${escapeHtml(entry.note)}</p>` : ''}
+          </div>
+        `)
+        .join('');
+    }
+
+    function clearLocalData() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) {}
+
+      state = {
+        mode: 'off',
+        safeModeStart: Date.now(),
+        mirrorStatement: EXAMPLE_PROMPTS[0],
+        triggers: []
+      };
+
+      persistState();
+      setMode('off');
+      updateSafeModeClock();
+      renderTriggerSection();
+      showToast('All local browser data wiped');
+    }
+
+    // =========================================================
+    // 8. UTILITIES (PRIVACY CLOAK, TOAST, XSS ESCAPE)
+    // =========================================================
+    function toggleCloak() {
+      document.getElementById('privacyCloak').classList.toggle('hidden');
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      const banner = document.getElementById('toastBanner');
+      const textEl = document.getElementById('toastText');
+      textEl.textContent = message;
+
+      banner.classList.remove('opacity-0', '-translate-y-2');
+      banner.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0');
+        banner.classList.add('opacity-0', '-translate-y-2');
+      }, 2600);
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    // =========================================================
+    // 9. INITIALIZE ON LOAD
+    // =========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      setMode(state.mode);
+      renderTriggerSection();
+      updateSafeModeClock();
+      setInterval(updateSafeModeClock, 1000);
+    });
+  </script>
+</body>
+</html>
